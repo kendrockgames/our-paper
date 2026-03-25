@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Private Paper</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="paper"></canvas>
+    <script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+    <script src="script.js"></script>
+  <div class="controls">
+    <button id="penBtn" class="active" onclick="usePen()">🖋️ Pen</button>
+    <button id="eraserBtn" onclick="useEraser()">🧽 Eraser</button>
+    <input type="color" id="colorPicker" value="#2c3e50" onchange="updateColor(this.value)">
+    
+    <button id="clearBtn" onclick="clearCanvas()">🗑️ Clear All</button>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevents scrolling while drawing */
+    background-color: #f0ede5; /* A light paper-like off-white */
+}
+
+#paper {
+    display: block;
+    cursor: crosshair; /* Makes the mouse look like a precision tool */
+    /* Add a subtle paper texture if you have a URL, or just a grid */
+    background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+    background-size: 20px 20px; /* Makes it look like graph paper */
+}
+
+.controls {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 10; /* Keeps it above the paper */
+}
+
+#eraserBtn {
+    padding: 10px 20px;
+    background: white;
+    border: 2px solid #2c3e50;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: sans-serif;
+}
+
+#eraserBtn:active {
+    background: #eee;
+}
+.controls {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+button {
+    padding: 10px 15px;
+    border: 2px solid #2c3e50;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+/* This shows which tool is selected */
+button.active {
+    background: #2c3e50;
+    color: white;
+    transform: scale(1.1); /* Makes the active button slightly larger */
+}
+#colorPicker {
+    width: 40px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+}
+
+/* For Chrome/Edge/Safari */
+#colorPicker::-webkit-color-swatch {
+    border-radius: 50%;
+    border: 2px solid #2c3e50;
+}
+
+/* For Firefox */
+#colorPicker::-moz-color-swatch {
+    border-radius: 50%;
+    border: 2px solid #2c3e50;
+}
+
+#clearBtn {
+    border: 2px solid #e74c3c; /* Red border */
+    color: #e74c3c;
+}
+
+#clearBtn:hover {
+    background-color: #e74c3c;
+    color: white;
+}
