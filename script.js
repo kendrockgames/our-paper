@@ -1,10 +1,8 @@
-// Connect to the server
 const socket = io();
-
 const canvas = document.getElementById('paper');
 const ctx = canvas.getContext('2d');
 
-// 1. Setup Canvas to fill the screen
+// 1. Setup Canvas
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -12,8 +10,10 @@ canvas.height = window.innerHeight;
 let drawing = false;
 let isEraser = false;
 let selectedColor = '#2c3e50'; 
+let lastX = 0;
+let lastY = 0;
 
-// 3. Pen Style Settings
+// 3. Tool Settings
 ctx.lineCap = 'round';
 ctx.lineJoin = 'round';
 
@@ -30,7 +30,7 @@ function useEraser() {
 
 function updateColor(color) {
     selectedColor = color;
-    usePen(); // Switch back to pen if a color is picked
+    usePen(); 
 }
 
 function updateUI() {
@@ -43,8 +43,12 @@ function updateUI() {
 }
 
 // 5. Shared Drawing Engine (The "Ink" logic)
-// This function actually puts pixels on the screen
-function renderDraw(x, y, color, erasing) {
+// This function draws a line from Point A (x0, y0) to Point B (x1, y1)
+function renderDraw(x0, y0, x1, y1, color, erasing) {
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+
     if (erasing) {
         ctx.globalCompositeOperation = 'destination-out';
         ctx.lineWidth = 30;
@@ -54,58 +58,60 @@ function renderDraw(x, y, color, erasing) {
         ctx.strokeStyle = color;
     }
     
-    ctx.lineTo(x, y);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+    ctx.closePath();
 }
 
-// 6. Local Drawing Logic (Your Mouse/Touch)
+// 6. Local Drawing Logic
 function startPosition(e) {
     drawing = true;
-    draw(e); 
+    // Set the starting point for the line
+    lastX = e.clientX || (e.touches && e.touches[0].clientX);
+    lastY = e.clientY || (e.touches && e.touches[0].clientY);
 }
 
 function finishedPosition() {
     drawing = false;
-    ctx.beginPath(); 
 }
 
 function draw(e) {
     if (!drawing) return;
 
-    // Get coordinates
+    // Current coordinates
     const x = e.clientX || (e.touches && e.touches[0].clientX);
     const y = e.clientY || (e.touches && e.touches[0].clientY);
 
-    // 1. Draw on YOUR screen locally
-    renderDraw(x, y, selectedColor, isEraser);
+    // 1. Draw on your screen (From Last Point to Current Point)
+    renderDraw(lastX, lastY, x, y, selectedColor, isEraser);
 
-    // 2. Send these coordinates to the SERVER so SHE can see them
+    // 2. Send the Start and End points to the Server
     socket.emit('drawing', { 
-        x: x, 
-        y: y, 
+        x0: lastX, 
+        y0: lastY, 
+        x1: x, 
+        y1: y, 
         color: selectedColor, 
         eraser: isEraser 
     });
+
+    // 3. Update "Last Point" to the current one so the next line connects
+    [lastX, lastY] = [x, y];
 }
 
 // 7. Remote Drawing Logic (Listening for HER)
 socket.on('drawing', (data) => {
-    // Draw her lines using the data sent from the server
-    renderDraw(data.x, data.y, data.color, data.eraser);
+    renderDraw(data.x0, data.y0, data.x1, data.y1, data.color, data.eraser);
 });
 
 // 8. Clear Board Logic
 function clearCanvas() {
     if (confirm("Clear the paper for both of us?")) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        socket.emit('clear'); // Tell the server to tell her to clear
+        socket.emit('clear'); 
     }
 }
 
 socket.on('clear', () => {
-    // When the server says "clear", wipe your screen
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
 
@@ -114,7 +120,12 @@ canvas.addEventListener('mousedown', startPosition);
 canvas.addEventListener('mouseup', finishedPosition);
 canvas.addEventListener('mousemove', draw);
 
-// Touch support for mobile phones
-canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); }, {passive: false});
+canvas.addEventListener('touchstart', (e) => { 
+    e.preventDefault(); 
+    startPosition(e); 
+}, {passive: false});
 canvas.addEventListener('touchend', finishedPosition);
-canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
+canvas.addEventListener('touchmove', (e) => { 
+    e.preventDefault(); 
+    draw(e); 
+}, {passive: false});
